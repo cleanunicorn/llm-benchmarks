@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "llm-benchmark"
+version = "0.1.0"
+description = "Benchmark LLMs using all kinds of prompts and tests"
+authors = ["Daniel Luca <lucadanielcostin@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+click = "^8.1.7"
+ollama = "^0.3.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
