@@ -1,8 +1,8 @@
-import click
 import os
-import ollama
 from datetime import datetime
-from textwrap import dedent
+
+import click
+import ollama
 
 
 def get_prompts(directory="prompts/"):
@@ -23,20 +23,24 @@ def get_prompts(directory="prompts/"):
 
 @click.command()
 @click.option("--model", default="llama3.1", help="Model to test")
-@click.option("--temp", default=1, help="Temperature")
+@click.option("--temp", default=1, type=float, help="Temperature")
 @click.option("--temp_min", default=None, help="Temperature min")
 @click.option("--temp_max", default=None, help="Temperature max")
+@click.option("--seed", default=42, help="Random seed")
+@click.option("--num_predict", default=2048, help="Max tokens to generate")
 @click.option(
     "--temp_inc",
     default=0.1,
     help="How much should the temperature increase between min and max",
 )
-def start(model, temp, temp_min, temp_max, temp_inc):
+def start(model, temp, temp_min, temp_max, temp_inc, seed, num_predict):
     """
     Start the tests with the specified parameters
     """
     click.echo("Selected options:")
     click.echo(f"  Model: {model}")
+    click.echo(f"  Random seed: {seed}")
+    click.echo(f"  Max tokens: {num_predict}")
     click.echo(
         f"  Temperature: {temp} (range: {temp_min if temp_min else '-'}/{temp_max if temp_max else '-'})"
     )
@@ -66,6 +70,8 @@ def start(model, temp, temp_min, temp_max, temp_inc):
                 stream=True,
                 options={
                     "temperature": temp,
+                    "seed": seed,
+                    "num_predict": num_predict,
                 },
             )
 
@@ -83,8 +89,11 @@ def start(model, temp, temp_min, temp_max, temp_inc):
                     f"{full_response}\n"
                 )
 
+            click.echo("")
             click.echo("---")
+            click.echo("")
 
 
 if __name__ == "__main__":
-    pass
+    start()
+
