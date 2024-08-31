@@ -27,7 +27,7 @@ def get_prompts(directory="prompts/"):
 
     Examples:
         >>> get_prompts()
-        {'subdir1': {'prompt1.txt': 'This is prompt 1', ...}, 
+        {'subdir1': {'prompt1.txt': 'This is prompt 1', ...},
          'subdir2': {'prompt1.txt': 'This is another prompt 1', ...}}
     """
 
@@ -92,6 +92,9 @@ def run_prompt(model, prompt_test, options, test_result_file):
 @click.command()
 @click.option("--model", default="llama3.1", help="Model to test")
 @click.option("--group", default=None, help="Test group to run")
+@click.option("--seed", default=42, help="Random seed")
+@click.option("--num_predict", default=None, help="Max tokens to generate")
+# Temperature
 @click.option("--temp", default=1, type=float, help="Temperature")
 @click.option("--temp_min", default=None, type=float, help="Temperature min")
 @click.option("--temp_max", default=None, type=float, help="Temperature max")
@@ -100,9 +103,41 @@ def run_prompt(model, prompt_test, options, test_result_file):
     default=0.1,
     help="How much should the temperature increase between min and max",
 )
-@click.option("--seed", default=42, help="Random seed")
-@click.option("--num_predict", default=None, help="Max tokens to generate")
-def start(model, group, temp, temp_min, temp_max, temp_inc, seed, num_predict):
+# Top_k
+@click.option("--top_k", default=1, help="Number of top scoring predictions to display")
+@click.option(
+    "--top_k_min",
+    default=None,
+    type=int,
+    help="Minimum number of top K predictions to consider",
+)
+@click.option(
+    "--top_k_max",
+    default=None,
+    type=int,
+    help="Maximum number of top K predictions to consider",
+)
+@click.option(
+    "--top_k_inc",
+    default=1,
+    help="How many should the top K increase between min and max",
+)
+def start(
+    model,
+    group,
+    seed,
+    num_predict,
+    # Temperature
+    temp,
+    temp_min,
+    temp_max,
+    temp_inc,
+    # Top_k
+    top_k,
+    top_k_min,
+    top_k_max,
+    top_k_inc,
+):
     """
     Start the tests with the specified parameters
     """
@@ -116,9 +151,19 @@ def start(model, group, temp, temp_min, temp_max, temp_inc, seed, num_predict):
         while t <= temp_max:
             temperatures.append(round(t, 2))
             t = t + temp_inc
-        click.echo(f"  Temperatures: {temperatures}")
     else:
         temperatures = [temp]
+    click.echo(f"  Temperatures: {temperatures}")
+
+    if top_k_min is not None and top_k_max is not None:
+        top_k_values = []
+        k = top_k_min
+        while k <= top_k_max:
+            top_k_values.append(k)
+            k = k + top_k_inc
+    else:
+        top_k_values = [top_k]
+    click.echo(f"  Top K values: {top_k_values}")
 
     # Read prompts
     prompts = get_prompts()
@@ -138,12 +183,14 @@ def start(model, group, temp, temp_min, temp_max, temp_inc, seed, num_predict):
         for prompt_test, prompt_contents in group_prompt_test.items():
             click.echo(f"Prompt: {prompt_contents}")
 
+            options = {
+                "seed": seed,
+                "num_predict": num_predict,
+            }
+
+            # Iterate temperature
             for temperature in temperatures:
-                options = {
-                    "temperature": temperature,
-                    "seed": seed,
-                    "num_predict": num_predict,
-                }
+                options["temperature"] = temperature
 
                 test_result_file = (
                     f"{test_group_directory}/{prompt_test}_temp={temperature}"
@@ -155,6 +202,36 @@ def start(model, group, temp, temp_min, temp_max, temp_inc, seed, num_predict):
                     options=options,
                     test_result_file=test_result_file,
                 )
+
+            # Iterate top_k
+            for top_k_value in top_k_values:
+                options["top_k"] = top_k_value
+
+                test_result_file = (
+                    f"{test_group_directory}/{prompt_test}_top_k={top_k_value}"
+                )
+
+                run_prompt(
+                    model=model,
+                    prompt_test=prompt_contents,
+                    options=options,
+                    test_result_file=test_result_file,
+                )
+
+            # Iterate runtime options
+            # num_predict: int
+            # top_k: int
+            # top_p: float
+            # tfs_z: float
+            # typical_p: float
+            # repeat_last_n: int
+            # temperature: float
+            # repeat_penalty: float
+            # presence_penalty: float
+            # frequency_penalty: float
+            # mirostat: int
+            # mirostat_tau: float
+            # mirostat_eta: float
 
             click.echo("")
             click.echo("---")
