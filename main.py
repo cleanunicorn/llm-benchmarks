@@ -123,6 +123,26 @@ def run_prompt(model, prompt_test, options, test_result_file):
     default=1,
     help="How many should the top K increase between min and max",
 )
+# Top_p
+@click.option("--top_p", default=0.9, type=float, help="Cumulative probability of chosen tokens")
+@click.option(
+    "--top_p_min",
+    default=None,
+    type=float,
+    help="Minimum cumulative probability to consider",
+)
+@click.option(
+    "--top_p_max",
+    default=None,
+    type=float,
+    help="Maximum cumulative probability to consider",
+)
+@click.option(
+    "--top_p_inc",
+    default=0.01,
+    type=float,
+    help="How much should the top P increase between min and max",
+)
 def start(
     model,
     group,
@@ -138,6 +158,11 @@ def start(
     top_k_min,
     top_k_max,
     top_k_inc,
+    # Top_p
+    top_p,
+    top_p_min,
+    top_p_max,
+    top_p_inc,
 ):
     """
     Start the tests with the specified parameters
@@ -146,6 +171,7 @@ def start(
     click.echo(f"  Model: {model}")
     click.echo(f"  Random seed: {seed}")
     click.echo(f"  Max tokens: {num_predict}")
+
     if temp_min is not None and temp_max is not None:
         temperature_values = []
         t = temp_min
@@ -165,6 +191,16 @@ def start(
     else:
         top_k_values = [top_k]
     click.echo(f"  Top K values: {top_k_values}")
+
+    if top_p_min is not None and top_p_max is not None:
+        top_p_values = []
+        p = top_p_min
+        while p <=top_p_max:
+            top_p_values.append(round(p, 2))
+            p = p + top_p_inc
+    else:
+        top_p_values = [top_p]
+    click.echo(f"  Top P values: {top_p_values}")
 
     # Read prompts
     prompts = get_prompts()
@@ -186,6 +222,7 @@ def start(
             "num_predict": num_predict,
         }
         test_options = []
+        
         for temperature in temperature_values:
             new_option = dict(base_options)
             new_option['temperature'] = temperature
@@ -194,7 +231,10 @@ def start(
             new_option = dict(base_options)
             new_option['top_k'] = top_k
             test_options.append(new_option)
-
+        for top_p in top_p_values:
+            new_option = dict(base_options)
+            new_option['top_p'] = top_p
+            test_options.append(new_option)
 
         for prompt_test, prompt_contents in group_prompt_test.items():
             click.echo(f"Prompt: {prompt_contents}")
