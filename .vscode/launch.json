@@ -14,8 +14,11 @@
                 "--temp_min", "0.5",
                 "--temp_max", "0.8",
                 "--temp_inc", "0.1",
-                "--prompt_group", "selected",
-                "--model", "phi3:14b",
+                "--top_k_min", "5",
+                "--top_k_max", "20",
+                "--top_k_inc", "3",
+                "--group", "entropy",
+                // "--model", "phi3:14b",
             ]
         }
     ]

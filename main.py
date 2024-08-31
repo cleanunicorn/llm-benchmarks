@@ -70,7 +70,8 @@ def run_prompt(model, prompt_test, options, test_result_file):
         options=options,
     )
 
-    click.echo("")
+    click.echo("\n")
+    click.echo("Options: ")
     click.echo(options)
 
     full_response = ""
@@ -146,14 +147,14 @@ def start(
     click.echo(f"  Random seed: {seed}")
     click.echo(f"  Max tokens: {num_predict}")
     if temp_min is not None and temp_max is not None:
-        temperatures = []
+        temperature_values = []
         t = temp_min
         while t <= temp_max:
-            temperatures.append(round(t, 2))
+            temperature_values.append(round(t, 2))
             t = t + temp_inc
     else:
-        temperatures = [temp]
-    click.echo(f"  Temperatures: {temperatures}")
+        temperature_values = [temp]
+    click.echo(f"  Temperatures: {temperature_values}")
 
     if top_k_min is not None and top_k_max is not None:
         top_k_values = []
@@ -180,35 +181,28 @@ def start(
         test_group_directory = results_directory + "/" + group_name
         os.mkdir(test_group_directory)
 
+        base_options = {
+            "seed": seed,
+            "num_predict": num_predict,
+        }
+        test_options = []
+        for temperature in temperature_values:
+            new_option = dict(base_options)
+            new_option['temperature'] = temperature
+            test_options.append(new_option)
+        for top_k in top_k_values:
+            new_option = dict(base_options)
+            new_option['top_k'] = top_k
+            test_options.append(new_option)
+
+
         for prompt_test, prompt_contents in group_prompt_test.items():
             click.echo(f"Prompt: {prompt_contents}")
 
-            options = {
-                "seed": seed,
-                "num_predict": num_predict,
-            }
-
-            # Iterate temperature
-            for temperature in temperatures:
-                options["temperature"] = temperature
-
+            # Iterate options
+            for option_index, options in enumerate(test_options):
                 test_result_file = (
-                    f"{test_group_directory}/{prompt_test}_temp={temperature}"
-                )
-
-                run_prompt(
-                    model=model,
-                    prompt_test=prompt_contents,
-                    options=options,
-                    test_result_file=test_result_file,
-                )
-
-            # Iterate top_k
-            for top_k_value in top_k_values:
-                options["top_k"] = top_k_value
-
-                test_result_file = (
-                    f"{test_group_directory}/{prompt_test}_top_k={top_k_value}"
+                    f"{test_group_directory}/{prompt_test}_{option_index}"
                 )
 
                 run_prompt(
