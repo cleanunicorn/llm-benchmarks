@@ -12,11 +12,13 @@ def get_prompts(directory="prompts/"):
         path = os.path.join(directory, item)
 
         if os.path.isdir(path):
-            prompts[item] = []
+            prompts[item] = {}
 
             for file_path in os.scandir(path):
                 with open(file_path, encoding="utf-8") as f:
-                    prompts[item].append(f.read())
+                    # Use the file name (without extension) as the key
+                    file_name = os.path.splitext(file_path.name)[0]
+                    prompts[item][file_name] = f.read()
 
     return prompts
 
@@ -77,10 +79,10 @@ def start(model, temp, temp_min, temp_max, temp_inc, seed, num_predict):
 
             full_response = ""
             for chunk in iter(stream):
-                print(chunk["response"], end="", flush=True)
+                click.echo(chunk["response"], nl=False)
                 full_response = full_response + chunk["response"]
 
-            test_result_file = test_group_directory + "/" + str(index)
+            test_result_file = test_group_directory + "/" + str(prompt_test)
             with open(test_result_file, "w", encoding="utf-8") as f:
                 f.write(
                     f"# Prompt\n"
