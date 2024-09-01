@@ -95,7 +95,7 @@ def run_prompt(model, prompt_test, options, test_result_file):
 @click.option("--model", default="llama3.1", help="Model to test")
 @click.option("--group", default=None, help="Test group to run")
 @click.option("--seed", default=42, help="Random seed")
-@click.option("--num_predict", default=None, help="Max tokens to generate")
+@click.option("--num_predict", default=None, type=int, help="Max tokens to generate")
 # Temperature
 @click.option("--temp", default=1, type=float, help="Temperature")
 @click.option("--temp_min", default=None, type=float, help="Temperature min")
@@ -106,7 +106,7 @@ def run_prompt(model, prompt_test, options, test_result_file):
     help="How much should the temperature increase between min and max",
 )
 # Top_k
-@click.option("--top_k", default=1, help="Number of top scoring predictions to display")
+@click.option("--top_k", default=None, help="Number of top scoring predictions to consider")
 @click.option(
     "--top_k_min",
     default=None,
