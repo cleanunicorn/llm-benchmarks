@@ -92,12 +92,12 @@ def run_prompt(model, prompt_test, options, test_result_file):
 
 
 @click.command()
-@click.option("--model", default="llama3.1", help="Model to test")
+@click.option("--model", default="llama3.1", help="Model to test", show_default=True)
 @click.option("--group", default=None, help="Test group to run")
 @click.option("--seed", default=42, help="Random seed")
 @click.option("--num_predict", default=None, type=int, help="Max tokens to generate")
 # Temperature
-@click.option("--temp", default=1, type=float, help="Temperature")
+@click.option("--temp", default=1.0, type=float, help="Temperature", show_default=True)
 @click.option("--temp_min", default=None, type=float, help="Temperature min")
 @click.option("--temp_max", default=None, type=float, help="Temperature max")
 @click.option(
@@ -106,7 +106,9 @@ def run_prompt(model, prompt_test, options, test_result_file):
     help="How much should the temperature increase between min and max",
 )
 # Top_k
-@click.option("--top_k", default=None, help="Number of top scoring predictions to consider")
+@click.option(
+    "--top_k", default=None, help="Number of top scoring predictions to consider"
+)
 @click.option(
     "--top_k_min",
     default=None,
@@ -125,7 +127,9 @@ def run_prompt(model, prompt_test, options, test_result_file):
     help="How many should the top K increase between min and max",
 )
 # Top_p
-@click.option("--top_p", default=0.9, type=float, help="Cumulative probability of chosen tokens")
+@click.option(
+    "--top_p", default=0.9, type=float, help="Cumulative probability of chosen tokens"
+)
 @click.option(
     "--top_p_min",
     default=None,
@@ -196,7 +200,7 @@ def start(
     if top_p_min is not None and top_p_max is not None:
         top_p_values = []
         p = top_p_min
-        while p <=top_p_max:
+        while p <= top_p_max:
             top_p_values.append(round(p, 2))
             p = p + top_p_inc
     else:
@@ -223,24 +227,17 @@ def start(
             "num_predict": num_predict,
         }
         test_options = []
-        all_combinations = itertools.product(temperature_values, top_k_values, top_p_values)
+        all_combinations = itertools.product(
+            temperature_values, top_k_values, top_p_values
+        )
         for combination in all_combinations:
             new_option = dict(base_options)
-            new_option['temperature'], new_option['top_k'], new_option['top_p'] = combination
+            (
+                new_option["temperature"],
+                new_option["top_k"],
+                new_option["top_p"],
+            ) = combination
             test_options.append(new_option)
-
-        # for temperature in temperature_values:
-        #     new_option = dict(base_options)
-        #     new_option['temperature'] = temperature
-        #     test_options.append(new_option)
-        # for top_k in top_k_values:
-        #     new_option = dict(base_options)
-        #     new_option['top_k'] = top_k
-        #     test_options.append(new_option)
-        # for top_p in top_p_values:
-        #     new_option = dict(base_options)
-        #     new_option['top_p'] = top_p
-        #     test_options.append(new_option)
 
         for prompt_test, prompt_contents in group_prompt_test.items():
             click.echo(f"Prompt: {prompt_contents}")
