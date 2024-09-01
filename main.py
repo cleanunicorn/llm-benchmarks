@@ -2,6 +2,7 @@
 Test models against a list of prompts and parameters.
 """
 
+import itertools
 import os
 from datetime import datetime
 
@@ -222,19 +223,24 @@ def start(
             "num_predict": num_predict,
         }
         test_options = []
-        
-        for temperature in temperature_values:
+        all_combinations = itertools.product(temperature_values, top_k_values, top_p_values)
+        for combination in all_combinations:
             new_option = dict(base_options)
-            new_option['temperature'] = temperature
+            new_option['temperature'], new_option['top_k'], new_option['top_p'] = combination
             test_options.append(new_option)
-        for top_k in top_k_values:
-            new_option = dict(base_options)
-            new_option['top_k'] = top_k
-            test_options.append(new_option)
-        for top_p in top_p_values:
-            new_option = dict(base_options)
-            new_option['top_p'] = top_p
-            test_options.append(new_option)
+
+        # for temperature in temperature_values:
+        #     new_option = dict(base_options)
+        #     new_option['temperature'] = temperature
+        #     test_options.append(new_option)
+        # for top_k in top_k_values:
+        #     new_option = dict(base_options)
+        #     new_option['top_k'] = top_k
+        #     test_options.append(new_option)
+        # for top_p in top_p_values:
+        #     new_option = dict(base_options)
+        #     new_option['top_p'] = top_p
+        #     test_options.append(new_option)
 
         for prompt_test, prompt_contents in group_prompt_test.items():
             click.echo(f"Prompt: {prompt_contents}")
